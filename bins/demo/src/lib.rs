@@ -11,7 +11,8 @@ mod tests {
 
     #[test]
     fn test_complex() {
-        const QUERY: &str = merge_whitespace!(r#"
+        const QUERY: &str = merge_whitespace!(
+            r#"
                 query {
                   users (limit: 1) {
                     id
@@ -22,7 +23,8 @@ mod tests {
                     }
                   }
                 }
-                "#);
+                "#
+        );
         assert_eq!(QUERY, "query { users (limit: 1) { id name todos(order_by: {created_at: desc}, limit: 5) { id title } } }");
     }
 }
