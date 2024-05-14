@@ -34,7 +34,7 @@ use syn::{parse_macro_input, LitStr};
 ///
 /// ```
 /// # use merge_whitespace::merge_whitespace;///
-/// let output = merge_whitespace!("Hello     World!\r\n      Remove        are         you?");
+/// let output = merge_whitespace!("Hello     World!\r\n      How        are         you?");
 /// assert_eq!(output, "Hello World! How are you?");
 /// ```
 ///
