@@ -10,8 +10,21 @@ given string literal, replacing them with a single space.
 ```rust
 use merge_whitespace::merge_whitespace;
 
-fn main() {
-    let output = merge_whitespace!("Hello     World!\r\n      How        are         you?");
-    assert_eq!(output, "Hello World! How are you?");
+const QUERY: &str = merge_whitespace!(r#"
+                query {
+                  users (limit: 1) {
+                    id
+                    name
+                    todos(order_by: {created_at: desc}, limit: 5) {
+                      id
+                      title
+                    }
+                  }
+                }
+                "#);
+
+#[test]
+fn test() {
+    assert_eq!(QUERY, "query { users (limit: 1) { id name todos(order_by: {created_at: desc}, limit: 5) { id title } } }");
 }
 ```
