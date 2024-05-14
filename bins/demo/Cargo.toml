@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-const-whitespace-compressor = { path = "../../crates/macro" }
+merge-whitespace = { path = "../../crates/macro" }

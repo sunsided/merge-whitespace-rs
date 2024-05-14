@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use const_whitespace_compressor::deduplicate_whitespace;
+    use merge_whitespace::merge_whitespace;
 
-    const OUTPUT: &str = deduplicate_whitespace!("This   is   an  example   string.");
+    const OUTPUT: &str = merge_whitespace!("This   is   an\r\n  example  \t string.");
 
     #[test]
     fn test(){
