@@ -1,5 +1,7 @@
 # merge_whitespace
 
+[![codecov](https://codecov.io/gh/sunsided/merge-whitespace-rs/graph/badge.svg?token=U6viefmywe)](https://codecov.io/gh/sunsided/merge-whitespace-rs)
+
 This crate contains procedural macros for removing multiple consecutive whitespaces from a
 given string literal, replacing them with a single space.
 
