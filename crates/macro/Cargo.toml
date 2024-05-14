@@ -1,6 +1,6 @@
 [package]
 name = "merge-whitespace"
-version = "0.1.0"
+version = "0.2.0-unstable"
 description = "Procedural macros for merging whitespace in const contexts"
 homepage = "https://github.com/sunsided/merge-whitespace-rs"
 repository = "https://github.com/sunsided/merge-whitespace-rs"
@@ -9,7 +9,7 @@ edition = "2021"
 license = "EUPL-1.2"
 readme = "../../README.md"
 categories = ["development-tools", "text-processing"]
-keywords = ["procedural-macro", "whitespaces"]
+keywords = ["procedural-macro", "whitespaces", "graphql"]
 
 [dependencies]
 proc-macro2 = "1.0"
