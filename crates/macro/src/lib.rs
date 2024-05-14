@@ -3,7 +3,7 @@
 //! This crate contains procedural macros for removing multiple consecutive whitespaces from a
 //! given string literal, replacing them with a single space.
 //!
-//! # Example
+//! ## Example
 //!
 //! ```
 //! use merge_whitespace::merge_whitespace;
@@ -21,7 +21,7 @@ use syn::{parse_macro_input, LitStr};
 /// This is a procedural macro that removes multiple consecutive whitespaces from a given string
 /// literal and replaces them with a single space.
 ///
-/// # Example
+/// ## Example
 ///
 /// ```
 /// use merge_whitespace::merge_whitespace;
