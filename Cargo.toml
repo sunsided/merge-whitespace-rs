@@ -1,0 +1,4 @@
+[workspace]
+members = ["crates/macro", "bins/demo"]
+default-members = ["bins/demo"]
+resolver = "2"
