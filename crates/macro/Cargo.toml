@@ -9,7 +9,7 @@ edition = "2021"
 license = "EUPL-1.2"
 readme = "../../README.md"
 categories = ["development-tools", "text-processing"]
-keywords = ["procedural-macro", 'whitespaces']
+keywords = ["procedural-macro", "whitespaces"]
 
 [dependencies]
 proc-macro2 = "1.0"
