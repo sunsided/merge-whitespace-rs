@@ -4,8 +4,20 @@ name: Rust
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'crates/**'
+      - 'bins/**'
+      - '.github/workflows/rust.yaml'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'crates/**'
+      - 'bins/**'
+      - '.github/workflows/rust.yaml'
 
 env:
   CARGO_TERM_COLOR: always
