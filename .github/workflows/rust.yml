@@ -9,7 +9,7 @@ on:
       - 'Cargo.lock'
       - 'crates/**'
       - 'bins/**'
-      - '.github/workflows/rust.yaml'
+      - '.github/workflows/rust.yml'
   pull_request:
     branches: [ "main" ]
     paths:
@@ -17,7 +17,7 @@ on:
       - 'Cargo.lock'
       - 'crates/**'
       - 'bins/**'
-      - '.github/workflows/rust.yaml'
+      - '.github/workflows/rust.yml'
 
 env:
   CARGO_TERM_COLOR: always
