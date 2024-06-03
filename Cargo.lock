@@ -4,14 +4,14 @@ version = 3
 
 [[package]]
 name = "demo"
-version = "0.1.0"
+version = "0.2.0-unstable"
 dependencies = [
  "merge-whitespace",
 ]
 
 [[package]]
 name = "merge-whitespace"
-version = "0.1.0"
+version = "0.2.0-unstable"
 dependencies = [
  "proc-macro2",
  "quote",
