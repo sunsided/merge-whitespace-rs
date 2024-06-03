@@ -12,7 +12,7 @@ given string literal, replacing them with a single space.
 
 ## Example
 
-The example below uses an optional quotation characters to keep quoted text ranges un-merged, as well as
+The example below uses an optional quotation character to keep quoted text ranges un-merged, as well as
 an optional escape character to ensure that quotation character literals are kept as-is.
 
 ```rust
