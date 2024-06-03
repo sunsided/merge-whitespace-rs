@@ -46,4 +46,29 @@ mod tests {
         let output = merge_whitespace_quoted!("Test: \"Nothing to  see   here    \" ");
         assert_eq!(output, r#"Test: "Nothing to  see   here    ""#);
     }
+
+    #[test]
+    fn test_quoted_explicit() {
+        let output =
+            merge_whitespace_quoted!("Hello     World!\r\n      \"How        are\"         you?", '"');
+        assert_eq!(output, r#"Hello World! "How        are" you?"#);
+    }
+
+    #[test]
+    fn test_quoted_custom() {
+        let output =
+            merge_whitespace_quoted!("Hello     World!\r\n      'How        are'         you?", '\'');
+        assert_eq!(output, "Hello World! 'How        are' you?");
+    }
+
+    #[test]
+    fn test_quoted_implicit() {
+        let output =
+            merge_whitespace_quoted!("Hello     World!\r\n      \"How        are\"         you?");
+        assert_eq!(output, r#"Hello World! "How        are" you?"#);
+
+        let output =
+            merge_whitespace_quoted!("Hello     World!\r\n      'How        are'         you?");
+        assert_eq!(output, "Hello World! 'How are' you?");
+    }
 }

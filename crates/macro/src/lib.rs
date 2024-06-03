@@ -25,7 +25,8 @@
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, LitStr};
+use syn::{parse_macro_input, LitStr, Token, Expr};
+use syn::parse::{Parse, ParseStream};
 
 /// This is a procedural macro that removes multiple consecutive whitespaces from a given string
 /// literal and replaces them with a single space.
@@ -71,19 +72,27 @@ pub fn merge_whitespace(input: TokenStream) -> TokenStream {
 /// assert_eq!(output, r#"Hello World! "How        are" you?"#);
 /// ```
 ///
+/// Alternatively, you can specify the character used for quotation:
+///
+/// ```
+/// # use merge_whitespace::merge_whitespace_quoted;
+/// let output = merge_whitespace_quoted!("Hello     World!\r\n      'How        are'         you?", '\'');
+/// assert_eq!(output, "Hello World! 'How        are' you?");
+/// ```
+///
 /// # Return
 ///
 /// The macro expands to the modified string literal.
 #[proc_macro]
 pub fn merge_whitespace_quoted(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
-    let input = parse_macro_input!(input as LitStr);
+    let input = parse_macro_input!(input as MacroInput);
 
-    // Get the string literal value
-    let input_str = input.value();
+    let input_str = input.string.value();
+    let quote_char = input.quote_char.unwrap_or('"');
 
     // Replace multiple whitespaces with a single space, skipping quoted blocks
-    let output_str = merge_whitespace_with_quotes(&input_str, '"');
+    let output_str = merge_whitespace_with_quotes(&input_str, quote_char);
 
     // Generate the output tokens
     let output = quote! {
@@ -92,6 +101,34 @@ pub fn merge_whitespace_quoted(input: TokenStream) -> TokenStream {
 
     output.into()
 }
+
+struct MacroInput {
+    string: LitStr,
+    quote_char: Option<char>,
+}
+
+impl Parse for MacroInput {
+    fn parse(input: ParseStream) -> syn::parse::Result<Self> {
+        let string = input.parse()?;
+        let quote_char = if input.is_empty() {
+            None
+        } else {
+            input.parse::<Token![,]>()?;
+            let expr: Expr = input.parse()?;
+            if let Expr::Lit(expr_lit) = expr {
+                if let syn::Lit::Char(lit_char) = expr_lit.lit {
+                    Some(lit_char.value())
+                } else {
+                    return Err(input.error("Expected a char literal"));
+                }
+            } else {
+                return Err(input.error("Expected a char literal"));
+            }
+        };
+        Ok(MacroInput { string, quote_char })
+    }
+}
+
 
 fn merge_whitespace_with_quotes(input: &str, quote_char: char) -> String {
     let input = input.trim();
