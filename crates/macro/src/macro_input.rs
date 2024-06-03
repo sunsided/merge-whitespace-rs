@@ -139,4 +139,87 @@ mod tests {
         assert_eq!(input.quote_char, None);
         assert_eq!(input.escape_char, Some('\\'));
     }
+
+    #[test]
+    fn test_invalid_input() {
+        // Invalid inputs with named arguments
+        assert!(
+            parse_str::<MacroInput>(r#""Test string", quote_char = var, escape_char = '\\'"#)
+                .is_err()
+        );
+        assert!(parse_str::<MacroInput>(
+            r#""Test string", quote_char = foo[0], escape_char = '\\'"#
+        )
+        .is_err());
+        assert!(parse_str::<MacroInput>(
+            r#""Test string", quote_char = "car", escape_char = '\\'"#
+        )
+        .is_err());
+        assert!(
+            parse_str::<MacroInput>(r#""Test string", quote_char = 12, escape_char = '\\'"#)
+                .is_err()
+        );
+        assert!(
+            parse_str::<MacroInput>(r#""Test string", quote_char = #, escape_char = '\\'"#)
+                .is_err()
+        );
+        assert!(
+            parse_str::<MacroInput>(r#""Test string", quote_char = '"', escape_char = var"#)
+                .is_err()
+        );
+        assert!(parse_str::<MacroInput>(
+            r#""Test string", quote_char = '"', escape_char = foo[0]"#
+        )
+        .is_err());
+        assert!(parse_str::<MacroInput>(
+            r#""Test string", quote_char = '"', escape_char = "quote""#
+        )
+        .is_err());
+        assert!(
+            parse_str::<MacroInput>(r#""Test string", quote_char = '"', escape_char = 12"#)
+                .is_err()
+        );
+
+        // Invalid inputs with positional arguments
+        assert!(parse_str::<MacroInput>(r#""Test string", "car", '\\'"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", 12, '\\'"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", #, '\\'"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", var, '\\'"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", foo[0], '\\'"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", a = b, '\\'"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", '"', "quote""#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", '"', 12"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", '"', var"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", '"', foo[0]"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", '"', a = b"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", foo = bar, a = b"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", "failure"#).is_err());
+
+        // Missing comma
+        assert!(
+            parse_str::<MacroInput>(r#""Test string", quote_char = '"' escape_char = '\\'"#)
+                .is_err()
+        );
+        assert!(
+            parse_str::<MacroInput>(r#""Test string" quote_char = '"', escape_char = '\\'"#)
+                .is_err()
+        );
+
+        // Invalid argument
+        assert!(
+            parse_str::<MacroInput>(r#""Test string", quote_chars = '"', escape_char = '\\'"#)
+                .is_err()
+        );
+        assert!(
+            parse_str::<MacroInput>(r#""Test string", quote_char = '"', escape_chars = '\\'"#)
+                .is_err()
+        );
+
+        // Too many arguments
+        assert!(parse_str::<MacroInput>(r#""Test string", '"', '\\', 42"#).is_err());
+        assert!(parse_str::<MacroInput>(
+            r#""Test string", quote_char = '"', escape_char = '\\', invalid = true"#
+        )
+        .is_err());
+    }
 }

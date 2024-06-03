@@ -171,6 +171,14 @@ mod tests {
     }
 
     #[test]
+    fn escape_a_space() {
+        assert_eq!(
+            merge_whitespace_with_quotes("what   \\   if I quote\\ spaces", QUOTE, ESCAPE),
+            "what \\  if I quote\\ spaces"
+        );
+    }
+
+    #[test]
     fn quoted_whitespace_with_escaped_quotes() {
         assert_eq!(
             merge_whitespace_with_quotes(
