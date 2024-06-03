@@ -30,8 +30,10 @@ mod tests {
 
     #[test]
     fn test_quoted() {
-        let output =
-            merge_whitespace!("Hello     World!\r\n      \"How        are\"         you?", '"');
+        let output = merge_whitespace!(
+            "Hello     World!\r\n      \"How        are\"         you?",
+            '"'
+        );
         assert_eq!(output, r#"Hello World! "How        are" you?"#);
 
         let output = merge_whitespace!("\"Nothing to  see   here    \"", '"');
@@ -46,19 +48,16 @@ mod tests {
         let output = merge_whitespace!("Test: \"Nothing to  see   here    \" ", '"');
         assert_eq!(output, r#"Test: "Nothing to  see   here    ""#);
 
-        let output =
-            merge_whitespace!("Hello     World!\r\n      'How        are'         you?");
+        let output = merge_whitespace!("Hello     World!\r\n      'How        are'         you?");
         assert_eq!(output, "Hello World! 'How are' you?");
     }
 
     #[test]
     fn test_unquoted() {
-        let output =
-            merge_whitespace!("Hello     World!\r\n      \"How        are\"         you?");
+        let output = merge_whitespace!("Hello     World!\r\n      \"How        are\"         you?");
         assert_eq!(output, r#"Hello World! "How are" you?"#);
 
-        let output =
-            merge_whitespace!("Hello     World!\r\n      'How        are'         you?");
+        let output = merge_whitespace!("Hello     World!\r\n      'How        are'         you?");
         assert_eq!(output, "Hello World! 'How are' you?");
     }
 }

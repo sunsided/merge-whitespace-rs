@@ -1,5 +1,5 @@
-use syn::{Expr, Ident, LitStr, Token};
 use syn::parse::{Parse, ParseStream, Result};
+use syn::{Expr, Ident, LitStr, Token};
 
 /// Input for the whitespace merging macro.
 pub struct MacroInput {
@@ -49,7 +49,9 @@ impl Parse for MacroInput {
                             return Err(input.error("Expected a char literal for escape_char"));
                         }
                     }
-                    _ => return Err(input.error("Expected 'quote_char' or 'escape_char' identifier")),
+                    _ => {
+                        return Err(input.error("Expected 'quote_char' or 'escape_char' identifier"))
+                    }
                 }
             } else {
                 let expr: Expr = input.parse()?;
@@ -75,14 +77,18 @@ impl Parse for MacroInput {
             }
         }
 
-        Ok(MacroInput { string, quote_char, escape_char })
+        Ok(MacroInput {
+            string,
+            quote_char,
+            escape_char,
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use syn::parse_str;
     use super::*;
+    use syn::parse_str;
 
     #[test]
     fn test_positional_quote_char() {
@@ -110,7 +116,8 @@ mod tests {
 
     #[test]
     fn test_named_quote_and_escape_char() {
-        let input: MacroInput = parse_str(r#""Test string", quote_char = '"', escape_char = '\\'"#).unwrap();
+        let input: MacroInput =
+            parse_str(r#""Test string", quote_char = '"', escape_char = '\\'"#).unwrap();
         assert_eq!(input.string.value(), "Test string");
         assert_eq!(input.quote_char, Some('"'));
         assert_eq!(input.escape_char, Some('\\'));
@@ -118,7 +125,8 @@ mod tests {
 
     #[test]
     fn test_named_escape_and_quote_char() {
-        let input: MacroInput = parse_str(r#""Test string", escape_char = '\\', quote_char = '"'"#).unwrap();
+        let input: MacroInput =
+            parse_str(r#""Test string", escape_char = '\\', quote_char = '"'"#).unwrap();
         assert_eq!(input.string.value(), "Test string");
         assert_eq!(input.quote_char, Some('"'));
         assert_eq!(input.escape_char, Some('\\'));

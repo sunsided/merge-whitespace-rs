@@ -9,7 +9,8 @@
 //! # use merge_whitespace::merge_whitespace;
 //! const QUERY: &str = merge_whitespace!(r#"
 //!                 query {
-//!                   users (limit: 1) {
+//!                   users (limit: 1, filter: "bought a 12\" vinyl
+//!                                             named \"spaces  in  space \"") {
 //!                     id
 //!                     name
 //!                     todos(order_by: {created_at: desc}, limit: 5) {
@@ -18,9 +19,12 @@
 //!                     }
 //!                   }
 //!                 }
-//!                 "#);
+//!                 "#,
+//!                 quote_char = '"',
+//!                 escape_char = '\\');
 //!
-//! assert_eq!(QUERY, "query { users (limit: 1) { id name todos(order_by: {created_at: desc}, limit: 5) { id title } } }");
+//! assert_eq!(QUERY, r#"query { users (limit: 1, filter: "bought a 12\" vinyl
+//!                                             named \"spaces  in  space \"") { id name todos(order_by: {created_at: desc}, limit: 5) { id title } } }"#);
 //! ```
 
 use proc_macro::TokenStream;
@@ -74,20 +78,38 @@ pub fn merge_whitespace(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-
-fn merge_whitespace_with_quotes(input: &str, quote_char: Option<char>, escape_char: Option<char>) -> String {
+fn merge_whitespace_with_quotes(
+    input: &str,
+    quote_char: Option<char>,
+    escape_char: Option<char>,
+) -> String {
     let input = input.trim();
     let mut result = String::with_capacity(input.len());
     let mut in_quotes = false;
     let mut prev_char_was_space = false;
+    let mut in_escape = false;
 
     for c in input.chars() {
-        if c.is_whitespace() && !in_quotes {
-            prev_char_was_space = true;
+        // If we hit an escape character, purge any previous spaces, then skip over it.
+        if escape_char == Some(c) && !in_escape {
+            if prev_char_was_space {
+                result.push(' ');
+            }
+
+            prev_char_was_space = false;
+            in_escape = true;
+            result.push(c);
             continue;
         }
 
-        if quote_char == Some(c) {
+        // If we hit a whitespace, buffer it unless it is escaped or within quotes.
+        if c.is_whitespace() && !in_quotes && !in_escape {
+            prev_char_was_space = true;
+            in_escape = false;
+            continue;
+        }
+
+        if quote_char == Some(c) && !in_escape {
             in_quotes = !in_quotes;
         }
 
@@ -96,6 +118,7 @@ fn merge_whitespace_with_quotes(input: &str, quote_char: Option<char>, escape_ch
         }
 
         prev_char_was_space = false;
+        in_escape = false;
         result.push(c);
     }
 
@@ -148,11 +171,23 @@ mod tests {
     }
 
     #[test]
-    fn test_complex() {
+    fn quoted_whitespace_with_escaped_quotes() {
+        assert_eq!(
+            merge_whitespace_with_quotes(
+                r#"foo   foobar   "  \"bar   \"   "   baz"#,
+                QUOTE,
+                ESCAPE
+            ),
+            r#"foo foobar "  \"bar   \"   " baz"#
+        );
+    }
+
+    #[test]
+    fn test_complex_escaped() {
         let result = merge_whitespace_with_quotes(
             r#"
                 query {
-                  users (limit: 1) {
+                  users (limit: 1, name: "Froozle   '78\"'   Frobnik") {
                     id
                     name
                     todos(order_by: {created_at: desc}, limit: 5) {
@@ -162,7 +197,30 @@ mod tests {
                   }
                 }
                 "#,
-        QUOTE, ESCAPE);
-        assert_eq!(result, "query { users (limit: 1) { id name todos(order_by: {created_at: desc}, limit: 5) { id title } } }");
+            QUOTE,
+            ESCAPE,
+        );
+        assert_eq!(result, "query { users (limit: 1, name: \"Froozle   '78\\\"'   Frobnik\") { id name todos(order_by: {created_at: desc}, limit: 5) { id title } } }");
+    }
+
+    #[test]
+    fn test_complex_unescaped() {
+        let result = merge_whitespace_with_quotes(
+            r#"
+                query {
+                  users (limit: 1, name: "Froozle   Frobnik") {
+                    id
+                    name
+                    todos(order_by: {created_at: desc}, limit: 5) {
+                      id
+                      title
+                    }
+                  }
+                }
+                "#,
+            QUOTE,
+            None,
+        );
+        assert_eq!(result, "query { users (limit: 1, name: \"Froozle   Frobnik\") { id name todos(order_by: {created_at: desc}, limit: 5) { id title } } }");
     }
 }
