@@ -73,7 +73,7 @@ fn parse_named_char(input: &ParseStream, char_kind: &'static str) -> Result<Opti
     input.parse::<Token![=]>()?;
     let expr: Expr = input.parse()?;
     if let Expr::Lit(expr_lit) = expr {
-        parse_char(&input, expr_lit, "quote_char")
+        parse_char(input, expr_lit, "quote_char")
     } else {
         Err(input.error(format!("Expected a char literal for {char_kind}")))
     }
