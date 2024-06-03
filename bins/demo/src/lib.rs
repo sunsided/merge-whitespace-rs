@@ -30,7 +30,8 @@ mod tests {
 
     #[test]
     fn test_quoted() {
-        let output = merge_whitespace_quoted!("Hello     World!\r\n      \"How        are\"         you?");
+        let output =
+            merge_whitespace_quoted!("Hello     World!\r\n      \"How        are\"         you?");
         assert_eq!(output, r#"Hello World! "How        are" you?"#);
 
         let output = merge_whitespace_quoted!("\"Nothing to  see   here    \"");

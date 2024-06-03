@@ -83,7 +83,7 @@ pub fn merge_whitespace_quoted(input: TokenStream) -> TokenStream {
     let input_str = input.value();
 
     // Replace multiple whitespaces with a single space, skipping quoted blocks
-    let output_str = merge_whitespace_with_quotes(&input_str);
+    let output_str = merge_whitespace_with_quotes(&input_str, '"');
 
     // Generate the output tokens
     let output = quote! {
@@ -93,7 +93,7 @@ pub fn merge_whitespace_quoted(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-fn merge_whitespace_with_quotes(input: &str) -> String {
+fn merge_whitespace_with_quotes(input: &str, quote_char: char) -> String {
     let input = input.trim();
     let mut result = String::with_capacity(input.len());
     let mut in_quotes = false;
@@ -105,7 +105,7 @@ fn merge_whitespace_with_quotes(input: &str) -> String {
             continue;
         }
 
-        if c == '"' {
+        if c == quote_char {
             in_quotes = !in_quotes;
         }
 
@@ -124,34 +124,47 @@ fn merge_whitespace_segment(segment: &str) -> String {
     segment.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    const QUOTE: char = '"';
+
     #[test]
     fn whitespace_only_is_trimmed() {
-        assert_eq!(merge_whitespace_with_quotes("  "), "");
-        assert_eq!(merge_whitespace_with_quotes("  \n \t  "), "");
+        assert_eq!(merge_whitespace_with_quotes("  ", QUOTE), "");
+        assert_eq!(merge_whitespace_with_quotes("  \n \t  ", QUOTE), "");
     }
 
     #[test]
     fn non_whitespace_is_ignored() {
-        assert_eq!(merge_whitespace_with_quotes("abcdefgh.ihkl-"), "abcdefgh.ihkl-");
+        assert_eq!(
+            merge_whitespace_with_quotes("abcdefgh.ihkl-", QUOTE),
+            "abcdefgh.ihkl-"
+        );
     }
 
     #[test]
     fn single_whitespace_in_text_is_kept() {
-        assert_eq!(merge_whitespace_with_quotes("foo bar baz"), "foo bar baz");
+        assert_eq!(
+            merge_whitespace_with_quotes("foo bar baz", QUOTE),
+            "foo bar baz"
+        );
     }
 
     #[test]
     fn multiple_whitespace_in_text_is_merged() {
-        assert_eq!(merge_whitespace_with_quotes("foo  bar\nbaz"), "foo bar baz");
+        assert_eq!(
+            merge_whitespace_with_quotes("foo  bar\nbaz", QUOTE),
+            "foo bar baz"
+        );
     }
 
     #[test]
     fn quoted_whitespace_in_text_is_kept() {
-        assert_eq!(merge_whitespace_with_quotes("foo   foobar   \"  bar\n\" baz"), "foo foobar \"  bar\n\" baz");
+        assert_eq!(
+            merge_whitespace_with_quotes("foo   foobar   \"  bar\n\" baz", QUOTE),
+            "foo foobar \"  bar\n\" baz"
+        );
     }
 }
