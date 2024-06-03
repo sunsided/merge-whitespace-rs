@@ -27,6 +27,7 @@
 //!                                             named \"spaces  in  space \"") { id name todos(order_by: {created_at: desc}, limit: 5) { id title } } }"#);
 //! ```
 
+#[forbid(unsafe_code)]
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse_macro_input;

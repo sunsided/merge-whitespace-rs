@@ -1,5 +1,5 @@
 use syn::parse::{Parse, ParseStream, Result};
-use syn::{Expr, Ident, LitStr, Token};
+use syn::{Expr, ExprLit, Ident, LitStr, Token};
 
 /// Input for the whitespace merging macro.
 pub struct MacroInput {
@@ -24,30 +24,10 @@ impl Parse for MacroInput {
                 let ident: Ident = input.parse()?;
                 match &*ident.to_string() {
                     "quote_char" => {
-                        input.parse::<Token![=]>()?;
-                        let expr: Expr = input.parse()?;
-                        if let Expr::Lit(expr_lit) = expr {
-                            if let syn::Lit::Char(lit_char) = expr_lit.lit {
-                                quote_char = Some(lit_char.value());
-                            } else {
-                                return Err(input.error("Expected a char literal for quote_char"));
-                            }
-                        } else {
-                            return Err(input.error("Expected a char literal for quote_char"));
-                        }
+                        quote_char = parse_named_char(&input, "quote_char")?;
                     }
                     "escape_char" => {
-                        input.parse::<Token![=]>()?;
-                        let expr: Expr = input.parse()?;
-                        if let Expr::Lit(expr_lit) = expr {
-                            if let syn::Lit::Char(lit_char) = expr_lit.lit {
-                                escape_char = Some(lit_char.value());
-                            } else {
-                                return Err(input.error("Expected a char literal for escape_char"));
-                            }
-                        } else {
-                            return Err(input.error("Expected a char literal for escape_char"));
-                        }
+                        escape_char = parse_named_char(&input, "escape_char")?;
                     }
                     _ => {
                         return Err(input.error("Expected 'quote_char' or 'escape_char' identifier"))
@@ -57,17 +37,9 @@ impl Parse for MacroInput {
                 let expr: Expr = input.parse()?;
                 if let Expr::Lit(expr_lit) = expr {
                     if quote_char.is_none() {
-                        if let syn::Lit::Char(lit_char) = expr_lit.lit {
-                            quote_char = Some(lit_char.value());
-                        } else {
-                            return Err(input.error("Expected a char literal for quote_char"));
-                        }
+                        quote_char = parse_char(&input, expr_lit, "quote_char")?;
                     } else if escape_char.is_none() {
-                        if let syn::Lit::Char(lit_char) = expr_lit.lit {
-                            escape_char = Some(lit_char.value());
-                        } else {
-                            return Err(input.error("Expected a char literal for escape_char"));
-                        }
+                        escape_char = parse_char(&input, expr_lit, "escape_char")?;
                     } else {
                         return Err(input.error("Unexpected additional positional argument"));
                     }
@@ -82,6 +54,28 @@ impl Parse for MacroInput {
             quote_char,
             escape_char,
         })
+    }
+}
+
+fn parse_char(
+    input: &ParseStream,
+    expr_lit: ExprLit,
+    char_kind: &'static str,
+) -> Result<Option<char>> {
+    if let syn::Lit::Char(lit_char) = expr_lit.lit {
+        Ok(Some(lit_char.value()))
+    } else {
+        Err(input.error(format!("Expected a char literal for {char_kind}")))
+    }
+}
+
+fn parse_named_char(input: &ParseStream, char_kind: &'static str) -> Result<Option<char>> {
+    input.parse::<Token![=]>()?;
+    let expr: Expr = input.parse()?;
+    if let Expr::Lit(expr_lit) = expr {
+        parse_char(&input, expr_lit, "quote_char")
+    } else {
+        Err(input.error(format!("Expected a char literal for {char_kind}")))
     }
 }
 
@@ -181,19 +175,25 @@ mod tests {
         );
 
         // Invalid inputs with positional arguments
+        assert!(parse_str::<MacroInput>(r#"todo!(), todo!(), todo!()"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", todo!(), todo!()"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", 1 + 1, '\\'"#).is_err());
         assert!(parse_str::<MacroInput>(r#""Test string", "car", '\\'"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", "car", "escape""#).is_err());
         assert!(parse_str::<MacroInput>(r#""Test string", 12, '\\'"#).is_err());
         assert!(parse_str::<MacroInput>(r#""Test string", #, '\\'"#).is_err());
         assert!(parse_str::<MacroInput>(r#""Test string", var, '\\'"#).is_err());
         assert!(parse_str::<MacroInput>(r#""Test string", foo[0], '\\'"#).is_err());
         assert!(parse_str::<MacroInput>(r#""Test string", a = b, '\\'"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", '"', 1 + 1"#).is_err());
         assert!(parse_str::<MacroInput>(r#""Test string", '"', "quote""#).is_err());
         assert!(parse_str::<MacroInput>(r#""Test string", '"', 12"#).is_err());
         assert!(parse_str::<MacroInput>(r#""Test string", '"', var"#).is_err());
         assert!(parse_str::<MacroInput>(r#""Test string", '"', foo[0]"#).is_err());
         assert!(parse_str::<MacroInput>(r#""Test string", '"', a = b"#).is_err());
         assert!(parse_str::<MacroInput>(r#""Test string", foo = bar, a = b"#).is_err());
-        assert!(parse_str::<MacroInput>(r#""Test string", "failure"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", "failure""#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", foo"#).is_err());
 
         // Missing comma
         assert!(
@@ -217,9 +217,21 @@ mod tests {
 
         // Too many arguments
         assert!(parse_str::<MacroInput>(r#""Test string", '"', '\\', 42"#).is_err());
+        assert!(parse_str::<MacroInput>(r#""Test string", '"', '\\', '42'"#).is_err());
         assert!(parse_str::<MacroInput>(
             r#""Test string", quote_char = '"', escape_char = '\\', invalid = true"#
         )
         .is_err());
+        assert!(parse_str::<MacroInput>(
+            r#""Test string", quote_char = '"', escape_char = '\\', invalid = 'x'"#
+        )
+        .is_err());
+
+        // Wild nonsense
+        assert!(
+            parse_str::<MacroInput>(r#""{-?[ORM]}", quote_char '"', escape_char '\\'"#).is_err()
+        );
+        assert!(parse_str::<MacroInput>("42").is_err());
+        assert!(parse_str::<MacroInput>(r#""foo" 42"#).is_err());
     }
 }
