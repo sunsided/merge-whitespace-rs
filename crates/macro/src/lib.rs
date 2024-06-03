@@ -25,21 +25,30 @@
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{LitStr, parse_macro_input};
+use syn::parse_macro_input;
 
 use crate::macro_input::MacroInput;
 
 mod macro_input;
 
 /// This is a procedural macro that removes multiple consecutive whitespaces from a given string
-/// literal and replaces them with a single space.
+/// literal and replaces them with a single space. Quoted text will be ignored and kept as-is.
 ///
 /// ## Example
 ///
 /// ```
 /// # use merge_whitespace::merge_whitespace;
-/// let output = merge_whitespace!("Hello     World!\r\n      How        are         you?");
-/// assert_eq!(output, "Hello World! How are you?");
+/// let output = merge_whitespace!("Hello     World!\r\n      \"How        are\"         you?");
+/// assert_eq!(output, r#"Hello World! "How are" you?"#);
+/// ```
+///
+/// If you want to keep quoted text as is, you can specify a quotation mark character.
+/// Everything within a pair of these markers is kept as-is:
+///
+/// ```
+/// # use merge_whitespace::merge_whitespace;
+/// let output = merge_whitespace!("Hello     World!\r\n      \"How        are\"         you?", quote_char = '"');
+/// assert_eq!(output, "Hello World! \"How        are\" you?");
 /// ```
 ///
 /// # Return
@@ -48,54 +57,14 @@ mod macro_input;
 #[proc_macro]
 pub fn merge_whitespace(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
-    let input = parse_macro_input!(input as LitStr);
-
-    // Get the string literal value
-    let input_str = input.value();
-
-    // Replace multiple whitespaces with a single space
-    let output_str = merge_whitespace_segment(&input_str);
-
-    // Generate the output tokens
-    let output = quote! {
-        #output_str
-    };
-
-    output.into()
-}
-
-/// This is a procedural macro that removes multiple consecutive whitespaces from a given string
-/// literal and replaces them with a single space. Quoted text will be ignored and kept as-is.
-///
-/// ## Example
-///
-/// ```
-/// # use merge_whitespace::merge_whitespace_quoted;
-/// let output = merge_whitespace_quoted!("Hello     World!\r\n      \"How        are\"         you?");
-/// assert_eq!(output, r#"Hello World! "How        are" you?"#);
-/// ```
-///
-/// Alternatively, you can specify the character used for quotation:
-///
-/// ```
-/// # use merge_whitespace::merge_whitespace_quoted;
-/// let output = merge_whitespace_quoted!("Hello     World!\r\n      'How        are'         you?", '\'');
-/// assert_eq!(output, "Hello World! 'How        are' you?");
-/// ```
-///
-/// # Return
-///
-/// The macro expands to the modified string literal.
-#[proc_macro]
-pub fn merge_whitespace_quoted(input: TokenStream) -> TokenStream {
-    // Parse the input tokens into a syntax tree
     let input = parse_macro_input!(input as MacroInput);
 
     let input_str = input.string.value();
-    let quote_char = input.quote_char.unwrap_or('"');
+    let quote_char = input.quote_char;
+    let escape_char = input.escape_char;
 
     // Replace multiple whitespaces with a single space, skipping quoted blocks
-    let output_str = merge_whitespace_with_quotes(&input_str, quote_char);
+    let output_str = merge_whitespace_with_quotes(&input_str, quote_char, escape_char);
 
     // Generate the output tokens
     let output = quote! {
@@ -106,7 +75,7 @@ pub fn merge_whitespace_quoted(input: TokenStream) -> TokenStream {
 }
 
 
-fn merge_whitespace_with_quotes(input: &str, quote_char: char) -> String {
+fn merge_whitespace_with_quotes(input: &str, quote_char: Option<char>, escape_char: Option<char>) -> String {
     let input = input.trim();
     let mut result = String::with_capacity(input.len());
     let mut in_quotes = false;
@@ -118,7 +87,7 @@ fn merge_whitespace_with_quotes(input: &str, quote_char: char) -> String {
             continue;
         }
 
-        if c == quote_char {
+        if quote_char == Some(c) {
             in_quotes = !in_quotes;
         }
 
@@ -133,26 +102,23 @@ fn merge_whitespace_with_quotes(input: &str, quote_char: char) -> String {
     result
 }
 
-fn merge_whitespace_segment(segment: &str) -> String {
-    segment.split_whitespace().collect::<Vec<_>>().join(" ")
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    const QUOTE: char = '"';
+    const QUOTE: Option<char> = Some('"');
+    const ESCAPE: Option<char> = Some('\\');
 
     #[test]
     fn whitespace_only_is_trimmed() {
-        assert_eq!(merge_whitespace_with_quotes("  ", QUOTE), "");
-        assert_eq!(merge_whitespace_with_quotes("  \n \t  ", QUOTE), "");
+        assert_eq!(merge_whitespace_with_quotes("  ", QUOTE, None), "");
+        assert_eq!(merge_whitespace_with_quotes("  \n \t  ", QUOTE, None), "");
     }
 
     #[test]
     fn non_whitespace_is_ignored() {
         assert_eq!(
-            merge_whitespace_with_quotes("abcdefgh.ihkl-", QUOTE),
+            merge_whitespace_with_quotes("abcdefgh.ihkl-", QUOTE, None),
             "abcdefgh.ihkl-"
         );
     }
@@ -160,7 +126,7 @@ mod tests {
     #[test]
     fn single_whitespace_in_text_is_kept() {
         assert_eq!(
-            merge_whitespace_with_quotes("foo bar baz", QUOTE),
+            merge_whitespace_with_quotes("foo bar baz", QUOTE, None),
             "foo bar baz"
         );
     }
@@ -168,7 +134,7 @@ mod tests {
     #[test]
     fn multiple_whitespace_in_text_is_merged() {
         assert_eq!(
-            merge_whitespace_with_quotes("foo  bar\nbaz", QUOTE),
+            merge_whitespace_with_quotes("foo  bar\nbaz", QUOTE, None),
             "foo bar baz"
         );
     }
@@ -176,8 +142,27 @@ mod tests {
     #[test]
     fn quoted_whitespace_in_text_is_kept() {
         assert_eq!(
-            merge_whitespace_with_quotes("foo   foobar   \"  bar\n\" baz", QUOTE),
+            merge_whitespace_with_quotes("foo   foobar   \"  bar\n\" baz", QUOTE, None),
             "foo foobar \"  bar\n\" baz"
         );
+    }
+
+    #[test]
+    fn test_complex() {
+        let result = merge_whitespace_with_quotes(
+            r#"
+                query {
+                  users (limit: 1) {
+                    id
+                    name
+                    todos(order_by: {created_at: desc}, limit: 5) {
+                      id
+                      title
+                    }
+                  }
+                }
+                "#,
+        QUOTE, ESCAPE);
+        assert_eq!(result, "query { users (limit: 1) { id name todos(order_by: {created_at: desc}, limit: 5) { id title } } }");
     }
 }

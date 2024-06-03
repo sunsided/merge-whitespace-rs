@@ -31,44 +31,34 @@ mod tests {
     #[test]
     fn test_quoted() {
         let output =
-            merge_whitespace_quoted!("Hello     World!\r\n      \"How        are\"         you?");
+            merge_whitespace!("Hello     World!\r\n      \"How        are\"         you?", '"');
         assert_eq!(output, r#"Hello World! "How        are" you?"#);
 
-        let output = merge_whitespace_quoted!("\"Nothing to  see   here    \"");
+        let output = merge_whitespace!("\"Nothing to  see   here    \"", '"');
         assert_eq!(output, r#""Nothing to  see   here    ""#);
 
-        let output = merge_whitespace_quoted!(" \"Nothing to  see   here    \" ");
+        let output = merge_whitespace!(" \"Nothing to  see   here    \" ", '"');
         assert_eq!(output, r#""Nothing to  see   here    ""#);
 
-        let output = merge_whitespace_quoted!("Test:\"Nothing to  see   here    \" ");
+        let output = merge_whitespace!("Test:\"Nothing to  see   here    \" ", '"');
         assert_eq!(output, r#"Test:"Nothing to  see   here    ""#);
 
-        let output = merge_whitespace_quoted!("Test: \"Nothing to  see   here    \" ");
+        let output = merge_whitespace!("Test: \"Nothing to  see   here    \" ", '"');
         assert_eq!(output, r#"Test: "Nothing to  see   here    ""#);
+
+        let output =
+            merge_whitespace!("Hello     World!\r\n      'How        are'         you?");
+        assert_eq!(output, "Hello World! 'How are' you?");
     }
 
     #[test]
-    fn test_quoted_explicit() {
+    fn test_unquoted() {
         let output =
-            merge_whitespace_quoted!("Hello     World!\r\n      \"How        are\"         you?", '"');
-        assert_eq!(output, r#"Hello World! "How        are" you?"#);
-    }
-
-    #[test]
-    fn test_quoted_custom() {
-        let output =
-            merge_whitespace_quoted!("Hello     World!\r\n      'How        are'         you?", '\'');
-        assert_eq!(output, "Hello World! 'How        are' you?");
-    }
-
-    #[test]
-    fn test_quoted_implicit() {
-        let output =
-            merge_whitespace_quoted!("Hello     World!\r\n      \"How        are\"         you?");
-        assert_eq!(output, r#"Hello World! "How        are" you?"#);
+            merge_whitespace!("Hello     World!\r\n      \"How        are\"         you?");
+        assert_eq!(output, r#"Hello World! "How are" you?"#);
 
         let output =
-            merge_whitespace_quoted!("Hello     World!\r\n      'How        are'         you?");
+            merge_whitespace!("Hello     World!\r\n      'How        are'         you?");
         assert_eq!(output, "Hello World! 'How are' you?");
     }
 }
