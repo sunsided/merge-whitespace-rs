@@ -12,7 +12,6 @@ keywords.workspace = true
 edition = "2021"
 
 [dependencies]
-proc-macro2 = "1.0.85"
 quote = "1.0.37"
 syn = "2.0.90"
 

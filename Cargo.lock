@@ -13,7 +13,6 @@ dependencies = [
 name = "merge-whitespace"
 version = "0.1.1"
 dependencies = [
- "proc-macro2",
  "quote",
  "syn",
 ]
