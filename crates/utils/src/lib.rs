@@ -29,6 +29,8 @@
 
 #![forbid(unsafe_code)]
 
+use std::borrow::Cow;
+
 /// Remove multiple consecutive whitespaces from a given string and replace them with a single space.
 /// If special handling of quoted text is required, see [`merge_whitespace_with_quotes`] instead.
 ///
@@ -43,7 +45,7 @@
 /// # Return
 ///
 /// The modified string.
-pub fn merge_whitespace(input: &str) -> String {
+pub fn merge_whitespace(input: &str) -> Cow<str> {
     merge_whitespace_with_quotes(input, None, None)
 }
 
@@ -65,47 +67,50 @@ pub fn merge_whitespace_with_quotes(
     input: &str,
     quote_char: Option<char>,
     escape_char: Option<char>,
-) -> String {
-    let input = input.trim();
-    let mut result = String::with_capacity(input.len());
+) -> Cow<str> {
+    let trimmed_input = input.trim();
+    let mut result = None; // Use this to lazily initialize a String if needed
     let mut in_quotes = false;
     let mut prev_char_was_space = false;
     let mut in_escape = false;
 
-    for c in input.chars() {
-        // If we hit an escape character, purge any previous spaces, then skip over it.
+    for c in trimmed_input.chars() {
         if escape_char == Some(c) && !in_escape {
             if prev_char_was_space {
-                result.push(' ');
+                result
+                    .get_or_insert_with(|| String::with_capacity(trimmed_input.len()))
+                    .push(' ');
             }
-
             prev_char_was_space = false;
             in_escape = true;
-            result.push(c);
+            result
+                .get_or_insert_with(|| String::with_capacity(trimmed_input.len()))
+                .push(c);
             continue;
         }
-
-        // If we hit a whitespace, buffer it unless it is escaped or within quotes.
         if c.is_whitespace() && !in_quotes && !in_escape {
             prev_char_was_space = true;
-            in_escape = false;
             continue;
         }
-
         if quote_char == Some(c) && !in_escape {
             in_quotes = !in_quotes;
         }
-
         if prev_char_was_space {
-            result.push(' ');
+            result
+                .get_or_insert_with(|| String::with_capacity(trimmed_input.len()))
+                .push(' ');
         }
-
+        result
+            .get_or_insert_with(|| String::with_capacity(trimmed_input.len()))
+            .push(c);
         prev_char_was_space = false;
         in_escape = false;
-        result.push(c);
     }
 
-    result
+    match result {
+        Some(resulting_string) => Cow::Owned(resulting_string),
+        None => Cow::Borrowed(trimmed_input),
+    }
 }
 
 #[cfg(test)]
@@ -117,15 +122,21 @@ mod tests {
 
     #[test]
     fn whitespace_only_is_trimmed() {
-        assert_eq!(merge_whitespace_with_quotes("  ", QUOTE, None), "");
-        assert_eq!(merge_whitespace_with_quotes("  \n \t  ", QUOTE, None), "");
+        assert_eq!(
+            merge_whitespace_with_quotes("  ", QUOTE, None),
+            Cow::Borrowed("")
+        );
+        assert_eq!(
+            merge_whitespace_with_quotes("  \n \t  ", QUOTE, None),
+            Cow::Borrowed("")
+        );
     }
 
     #[test]
     fn non_whitespace_is_ignored() {
         assert_eq!(
             merge_whitespace_with_quotes("abcdefgh.ihkl-", QUOTE, None),
-            "abcdefgh.ihkl-"
+            Cow::Borrowed("abcdefgh.ihkl-")
         );
     }
 
@@ -133,7 +144,7 @@ mod tests {
     fn single_whitespace_in_text_is_kept() {
         assert_eq!(
             merge_whitespace_with_quotes("foo bar baz", QUOTE, None),
-            "foo bar baz"
+            Cow::Borrowed("foo bar baz")
         );
     }
 
@@ -141,7 +152,7 @@ mod tests {
     fn multiple_whitespace_in_text_is_merged() {
         assert_eq!(
             merge_whitespace_with_quotes("foo  bar\nbaz", QUOTE, None),
-            "foo bar baz"
+            Cow::<str>::Owned(String::from("foo bar baz"))
         );
     }
 
@@ -149,7 +160,7 @@ mod tests {
     fn quoted_whitespace_in_text_is_kept() {
         assert_eq!(
             merge_whitespace_with_quotes("foo   foobar   \"  bar\n\" baz", QUOTE, None),
-            "foo foobar \"  bar\n\" baz"
+            Cow::<str>::Owned(String::from("foo foobar \"  bar\n\" baz"))
         );
     }
 
@@ -157,7 +168,7 @@ mod tests {
     fn escape_a_space() {
         assert_eq!(
             merge_whitespace_with_quotes("what   \\   if I quote\\ spaces", QUOTE, ESCAPE),
-            "what \\  if I quote\\ spaces"
+            Cow::<str>::Owned(String::from("what \\  if I quote\\ spaces"))
         );
     }
 
@@ -169,7 +180,7 @@ mod tests {
                 QUOTE,
                 ESCAPE
             ),
-            r#"foo foobar "  \"bar   \"   " baz"#
+            Cow::<str>::Owned(String::from(r#"foo foobar "  \"bar   \"   " baz"#))
         );
     }
 
