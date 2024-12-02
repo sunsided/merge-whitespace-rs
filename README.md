@@ -42,6 +42,8 @@ fn test() {
 }
 ```
 
+Alternatively, the `merge_whitespace_utils::merge_whitespace` function can be used to process variable input. 
+
 [safety-image]: https://img.shields.io/badge/unsafe-forbidden-success.svg
 
 [safety-link]: https://github.com/rust-secure-code/safety-dance/

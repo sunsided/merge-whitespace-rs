@@ -10,7 +10,8 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - Added the `merge-whitespace-utils` crate to expose the `merge_whitespace` and `merge_whitespace_with_quotes`
-  functions for operating on strings rather than string literals.
+  functions for operating on strings rather than string literals. These functions return `Cow<str>` to avoid
+  allocations when no transformation happened.
 
 ### Internal
 
