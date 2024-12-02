@@ -13,7 +13,7 @@ keywords = ["procedural-macro", "whitespaces", "graphql"]
 
 [dependencies]
 proc-macro2 = "1.0.85"
-quote = "1.0.36"
+quote = "1.0.37"
 syn = "2.0.66"
 
 [lib]
