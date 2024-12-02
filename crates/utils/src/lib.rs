@@ -122,15 +122,21 @@ mod tests {
 
     #[test]
     fn whitespace_only_is_trimmed() {
-        assert_eq!(merge_whitespace_with_quotes("  ", QUOTE, None), "");
-        assert_eq!(merge_whitespace_with_quotes("  \n \t  ", QUOTE, None), "");
+        assert_eq!(
+            merge_whitespace_with_quotes("  ", QUOTE, None),
+            Cow::Borrowed("")
+        );
+        assert_eq!(
+            merge_whitespace_with_quotes("  \n \t  ", QUOTE, None),
+            Cow::Borrowed("")
+        );
     }
 
     #[test]
     fn non_whitespace_is_ignored() {
         assert_eq!(
             merge_whitespace_with_quotes("abcdefgh.ihkl-", QUOTE, None),
-            "abcdefgh.ihkl-"
+            Cow::Borrowed("abcdefgh.ihkl-")
         );
     }
 
@@ -138,7 +144,7 @@ mod tests {
     fn single_whitespace_in_text_is_kept() {
         assert_eq!(
             merge_whitespace_with_quotes("foo bar baz", QUOTE, None),
-            "foo bar baz"
+            Cow::Borrowed("foo bar baz")
         );
     }
 
@@ -146,7 +152,7 @@ mod tests {
     fn multiple_whitespace_in_text_is_merged() {
         assert_eq!(
             merge_whitespace_with_quotes("foo  bar\nbaz", QUOTE, None),
-            "foo bar baz"
+            Cow::<str>::Owned(String::from("foo bar baz"))
         );
     }
 
@@ -154,7 +160,7 @@ mod tests {
     fn quoted_whitespace_in_text_is_kept() {
         assert_eq!(
             merge_whitespace_with_quotes("foo   foobar   \"  bar\n\" baz", QUOTE, None),
-            "foo foobar \"  bar\n\" baz"
+            Cow::<str>::Owned(String::from("foo foobar \"  bar\n\" baz"))
         );
     }
 
@@ -162,7 +168,7 @@ mod tests {
     fn escape_a_space() {
         assert_eq!(
             merge_whitespace_with_quotes("what   \\   if I quote\\ spaces", QUOTE, ESCAPE),
-            "what \\  if I quote\\ spaces"
+            Cow::<str>::Owned(String::from("what \\  if I quote\\ spaces"))
         );
     }
 
@@ -174,7 +180,7 @@ mod tests {
                 QUOTE,
                 ESCAPE
             ),
-            r#"foo foobar "  \"bar   \"   " baz"#
+            Cow::<str>::Owned(String::from(r#"foo foobar "  \"bar   \"   " baz"#))
         );
     }
 
