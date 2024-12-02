@@ -14,7 +14,7 @@ edition = "2021"
 [dependencies]
 quote = "1.0.37"
 syn = "2.0.90"
-merge-whitespace-utils = { path = "../utils" }
+merge-whitespace-utils = { path = "../utils", version = "1.1.0" }
 
 [lib]
 proc-macro = true
