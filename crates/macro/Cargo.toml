@@ -1,6 +1,6 @@
 [package]
 name = "merge-whitespace"
-version = "1.0.0"
+version = "1.0.1"
 description = "Procedural macros for merging whitespace in const contexts"
 homepage = "https://github.com/sunsided/merge-whitespace-rs"
 repository = "https://github.com/sunsided/merge-whitespace-rs"

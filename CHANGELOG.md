@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2024-12-02
+
+[1.0.1]: https://github.com/sunsided/merge-whitespace-rs/releases/tag/v1.0.1
+
+### Internal
+
+- Updated dependencies to latest patch releases.
+
 ## [1.0.0] - 2024-06-03
 
 [1.0.0]: https://github.com/sunsided/merge-whitespace-rs/releases/tag/v1.0.0
