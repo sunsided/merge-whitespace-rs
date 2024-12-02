@@ -25,3 +25,7 @@ fuzz TARGET:
 # Runs code coverage
 codecov PROFILE="ci":
     cargo llvm-cov nextest --all-features --lcov --output-path lcov.info "--profile={{ PROFILE }}"
+
+# Performs a publishing dry run
+publish-dryrun PACKAGE="merge-whitespace":
+    cargo publish --dry-run --package "{{ PACKAGE }}"
