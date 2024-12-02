@@ -6,3 +6,4 @@ publish = false
 
 [dependencies]
 merge-whitespace = { path = "../../crates/macro" }
+merge-whitespace-utils = { path = "../../crates/utils" }

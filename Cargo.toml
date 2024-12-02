@@ -1,5 +1,5 @@
 [workspace.package]
-version = "0.1.1"
+version = "1.1.0"
 authors = ["Markus Mayer <widemeadows@gmail.com>"]
 description = "Procedural macros for merging whitespace in const contexts"
 homepage = "https://github.com/sunsided/merge-whitespace-rs"
@@ -10,6 +10,6 @@ categories = ["development-tools", "text-processing"]
 keywords = ["procedural-macro", "whitespaces", "graphql"]
 
 [workspace]
-members = ["crates/macro", "bins/demo"]
-default-members = ["crates/macro", "bins/demo"]
+members = ["crates/macro", "crates/utils", "bins/demo", "fuzz"]
+default-members = ["crates/macro", "crates/utils", "bins/demo"]
 resolver = "2"

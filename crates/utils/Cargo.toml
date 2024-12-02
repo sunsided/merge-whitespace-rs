@@ -1,5 +1,5 @@
 [package]
-name = "merge-whitespace"
+name = "merge-whitespace-utils"
 version.workspace = true
 authors.workspace = true
 description.workspace = true
@@ -10,12 +10,3 @@ readme.workspace = true
 categories.workspace = true
 keywords.workspace = true
 edition = "2021"
-
-[dependencies]
-quote = "1.0.37"
-syn = "2.0.90"
-merge-whitespace-utils = { path = "../utils" }
-
-[lib]
-proc-macro = true
-

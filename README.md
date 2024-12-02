@@ -3,6 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/merge-whitespace)](https://crates.io/crates/merge-whitespace)
 [![Crates.io](https://img.shields.io/crates/l/merge-whitespace)](https://crates.io/crates/merge-whitespace)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/sunsided/merge-whitespace-rs/rust.yml)
+[![Safety Dance][safety-image]][safety-link]
 [![docs.rs](https://img.shields.io/docsrs/merge-whitespace)](https://docs.rs/merge-whitespace/)
 [![codecov](https://codecov.io/gh/sunsided/merge-whitespace-rs/graph/badge.svg?token=U6viefmywe)](https://codecov.io/gh/sunsided/merge-whitespace-rs)
 
@@ -40,3 +41,7 @@ fn test() {
                                  named \"spaces  in  space \"") { id name todos(order_by: {created_at: desc}, limit: 5) { id title } } }"#);
 }
 ```
+
+[safety-image]: https://img.shields.io/badge/unsafe-forbidden-success.svg
+
+[safety-link]: https://github.com/rust-secure-code/safety-dance/
