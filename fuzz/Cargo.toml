@@ -1,0 +1,24 @@
+[package]
+name = "merge-whitespace-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.merge-whitespace]
+path = "../crates/macro"
+
+[dependencies.merge-whitespace-utils]
+path = "../crates/utils"
+
+[[bin]]
+name = "merge_whitespace"
+path = "fuzz_targets/merge_whitespace.rs"
+test = false
+doc = false
+bench = false

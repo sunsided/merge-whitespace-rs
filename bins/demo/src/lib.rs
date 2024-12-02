@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     use merge_whitespace::*;
+    use merge_whitespace_utils::merge_whitespace;
 
     const OUTPUT: &str = merge_whitespace!("This   is   an\r\n  example  \t string.");
 
@@ -59,5 +60,16 @@ mod tests {
 
         let output = merge_whitespace!("Hello     World!\r\n      'How        are'         you?");
         assert_eq!(output, "Hello World! 'How are' you?");
+    }
+
+    #[test]
+    fn test_variable() {
+        let input = "Hello     World!\r\n      \"How        are\"         you?";
+        let output = merge_whitespace(input);
+        assert_eq!(output, r#"Hello World! "How are" you?"#);
+
+        const INPUT: &str = "Hello     World!\r\n      '\"How        are\"'         you?";
+        let output = merge_whitespace(INPUT);
+        assert_eq!(output, "Hello World! '\"How are\"' you?");
     }
 }
